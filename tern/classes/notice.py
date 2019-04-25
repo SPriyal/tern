@@ -1,7 +1,10 @@
+# -*- coding: utf-8 -*-
 #
 # Copyright (c) 2017-2019 VMware, Inc. All Rights Reserved.
 # SPDX-License-Identifier: BSD-2-Clause
 #
+
+from tern.utils.general import prop_names
 
 
 class NoticeException(Exception):
@@ -53,8 +56,19 @@ class Notice:
         else:
             raise LevelException(level, 'Illegal Level')
 
-    def to_dict(self):
+    def to_dict(self, template=None):
         notice_dict = {}
-        notice_dict.update({'message': self.message})
-        notice_dict.update({'level': self.level})
+        if template:
+            # loop through object properties
+            for key, prop in prop_names(self):
+                # check if the property is in the mapping
+                if prop in template.notice().keys():
+                    notice_dict.update(
+                        {template.notice()[prop]: self.__dict__[key]})
+        else:
+            # don't map, just use the property name as the key
+            for key, prop in prop_names(self):
+                notice_dict.update({prop: self.__dict__[key]})
+            # special case - don't include 'levels'
+            notice_dict.pop('levels')
         return notice_dict
